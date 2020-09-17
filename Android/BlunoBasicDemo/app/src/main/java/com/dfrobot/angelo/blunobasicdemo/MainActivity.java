@@ -1,8 +1,11 @@
 package com.dfrobot.angelo.blunobasicdemo;
 
+import android.Manifest;
 import android.content.Context;
+import android.os.Build;
 import android.os.Bundle;
 import android.content.Intent;
+import android.os.StrictMode;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -10,11 +13,19 @@ import android.widget.EditText;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import java.io.IOException;
+import java.net.DatagramSocket;
+import java.net.SocketException;
+import java.net.DatagramPacket;
+import java.net.InetAddress;
+
 public class MainActivity  extends BlunoLibrary {
 	private Button buttonScan;
 	private Button buttonSerialSend;
 	private EditText serialSendText;
 	private TextView serialReceivedText;
+
+	public static final int PERMISSION_REQUEST_COARSE_LOCATION = 456;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +60,15 @@ public class MainActivity  extends BlunoLibrary {
 				buttonScanOnClickProcess();										//Alert Dialog for selecting the BLE device
 			}
 		});
+
+        // from https://github.com/googlearchive/android-BluetoothLeGatt/issues/38
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+			requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, PERMISSION_REQUEST_COARSE_LOCATION);
+		}
+
+		StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
+		StrictMode.setThreadPolicy(policy);
+
 	}
 
 	protected void onResume(){
@@ -109,8 +129,27 @@ public class MainActivity  extends BlunoLibrary {
 	public void onSerialReceived(String theString) {							//Once connection data received, this function will be called
 		// TODO Auto-generated method stub
 		serialReceivedText.append(theString);							//append the text into the EditText
+		System.err.println("Received string: " + theString + ", try to send it out via UDP");
+		try {
+			sendOutUDP(theString);
+		} catch (Exception e) {
+			System.err.println("Caught exception trying to send data out UDP:\n" + e);
+		}
 		//The Serial data from the BLUNO may be sub-packaged, so using a buffer to hold the String is a good choice.
 		((ScrollView)serialReceivedText.getParent()).fullScroll(View.FOCUS_DOWN);
+	}
+
+	// Method to send Sting to UDP Server
+	// Based on https://stackoverflow.com/questions/24861380/android-sending-string-over-udp
+	public static void sendOutUDP(String strI) throws Exception // SocketException, IOException, Exception, Throwable
+	{
+		int port = 8899;
+		DatagramSocket clientSocket = new DatagramSocket(port);
+		InetAddress ipaddr = InetAddress.getByName("75.150.88.181");
+		byte[] sendData = strI.getBytes();
+		DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, ipaddr, port);
+		clientSocket.send(sendPacket);
+		clientSocket.close();
 	}
 
 }
