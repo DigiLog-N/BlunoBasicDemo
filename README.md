@@ -1,5 +1,32 @@
+Erigo notes
+===========
+
+This repository was forked from https://github.com/DFRobot/BlunoBasicDemo.
+
+This code was developed by DFRobot as a simple Bluetooth demonstration showing communication between a Bluno Arduino board and an Android phone. The included Arduino application (https://github.com/DigiLog-N/BlunoBasicDemo/blob/master/Arduino/BlunoBasicDemo/BlunoBasicDemo.ino) reads text input and echos it right back out over Bluetooth. The Android phone application connects to the Bluno board, can send text messages to the board, and display text read from the Bluno board.
+
+We can use this application when running "MegaLoggerHD" (https://github.com/DigiLog-N/ArduinoOBD/tree/master/megaloggerHD) on the Bluno Mega board in order to receive and then send off via UDP messages from the Bluno Mega.
+
+Several modifications have been made to the Android application:
+* Upgrade Android SDK version from 21 to 26
+* Upgrade Android tools version from 1.5.0 to 4.0.1
+* Compiled this program using Android Studio
+* Add new permissions to AndroidManifest.xml to support internet access; not sure all of these are needed, but I added them anyway:
+- <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+- <uses-permission android:name="android.permission.INTERNET" />
+- <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+- <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+- <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
+- <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+* Change MainActivity.java to support sending messages off as UDP packets
+- request permission for ACCESS_COARSE_LOCATION from the user (this is needed to let BLE scanning work); see https://github.com/googlearchive/android-BluetoothLeGatt/issues/38
+- normally, can't do networking operations (like send out UDP packet) on the main thread; I added a quick fix to get around this (search for "StrictMode" at https://stackoverflow.com/questions/6343166/how-to-fix-android-os-networkonmainthreadexception)
+- added new method, sendOutUDP(), and call this method from in onSerialReceived()
+
+To see how to put my Moto e5 into Developer mode: https://www.youtube.com/watch?v=aGcHjsaFp4g&ab_channel=HardReset.Info
+
 BlunoBasicDemo
-=======================
+==============
 
 # _Brief_
 

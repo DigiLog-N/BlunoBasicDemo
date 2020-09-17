@@ -61,14 +61,17 @@ public class MainActivity  extends BlunoLibrary {
 			}
 		});
 
+        // JPW 2020-09-16: need to request permission for ACCESS_COARSE_LOCATION; this is required to allow scanning for BLE devices
         // from https://github.com/googlearchive/android-BluetoothLeGatt/issues/38
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 			requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, PERMISSION_REQUEST_COARSE_LOCATION);
 		}
 
+		// JPW 2020-09-16: normally, can't perform networking functions from the main thread, but this is a
+		//                 workaround that allows us to do it (just for simplicity for now)
+		// Got this from https://stackoverflow.com/questions/6343166/how-to-fix-android-os-networkonmainthreadexception (search for "StrictMode" on this page)
 		StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
 		StrictMode.setThreadPolicy(policy);
-
 	}
 
 	protected void onResume(){
@@ -129,7 +132,8 @@ public class MainActivity  extends BlunoLibrary {
 	public void onSerialReceived(String theString) {							//Once connection data received, this function will be called
 		// TODO Auto-generated method stub
 		serialReceivedText.append(theString);							//append the text into the EditText
-		System.err.println("Received string: " + theString + ", try to send it out via UDP");
+		// System.err.println("Received string: " + theString + ", try to send it out via UDP");
+		// JPW 2020-09-16: send out new message via UDP
 		try {
 			sendOutUDP(theString);
 		} catch (Exception e) {
@@ -140,6 +144,7 @@ public class MainActivity  extends BlunoLibrary {
 	}
 
 	// Method to send Sting to UDP Server
+	// JPW 2020-09-16 Added this new method
 	// Based on https://stackoverflow.com/questions/24861380/android-sending-string-over-udp
 	public static void sendOutUDP(String strI) throws Exception // SocketException, IOException, Exception, Throwable
 	{
